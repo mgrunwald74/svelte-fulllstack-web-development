@@ -1,3 +1,4 @@
+---
 # More detail see: https://www.gitpod.io/docs/references/gitpod-yml
 tasks:
   - init: npm install
@@ -10,6 +11,10 @@ ports:
 vscode:
   extensions:
     - svelte.svelte-vscode
+
+    - esbenp.prettier-vscode
+
+    - dbaeumer.vscode-eslint
 
 github:
   prebuilds:
