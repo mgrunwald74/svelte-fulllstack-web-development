@@ -14,7 +14,8 @@
         <button aria-label="Save todo" class="save"></button>
     </form>
 
-    <form action="" method="">
+    <!-- See svelte.config.js -> methodOverride {}! https://kit.svelte.dev/docs/routing#endpoints-http-method-overrides -->
+    <form action="/todos/{todo.uid}.json?_method=delete" method="post">
         <button aria-label="Delete todo" class="delete"></button>
     </form>
 </div>
