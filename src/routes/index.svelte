@@ -1,8 +1,53 @@
-<script>
+<script context="module" lang="ts">
+	import type { Load } from '@sveltejs/kit';
+
+	export const load: Load = async ({ fetch }) => {
+		const res = await fetch('/todos.json')
+
+		if (res.ok) {
+			const todos = await res.json()
+			return {
+				props: { todos }
+			}
+		}
+
+		const { message } = await res.json();
+		return {
+			error: new Error(message)
+		}
+	};
+</script>
+
+<script lang="ts">
 	import TodoItem from '$lib/todo-item.svelte';
+
+	export let todos: Todo[];
 
 	const title = 'Todos';
 </script>
+
+<svelte:head>
+	<title>{title}</title>
+</svelte:head>
+
+<div class="todos">
+	<h1>{title}</h1>
+
+	<form action="/todos.json" method="post" class="new">
+		<input
+			type="text"
+			name="text"
+			aria-label="Add a todo"
+			placeholder="+ tap to add a todo"
+			autocomplete="off"
+		/>
+	</form>
+
+	{#each todos as todo}
+		<TodoItem {todo}/>
+	{/each}
+
+</div>
 
 <style>
 	.todos {
@@ -37,22 +82,4 @@
 		border: 1px solid #ff3e00 !important;
 		outline: none;
 	}
-
 </style>
-
-<svelte:head>
-	<title>{title}</title>
-</svelte:head>
-
-<div class="todos">
-	<h1>{title}</h1>
-	
-	<form action="" method="" class="new">
-		<input type="text" name="text" aria-label="Add a todo" placeholder="+ tap to add a todo" autocomplete="off"/>
-	</form>
-	
-	<TodoItem />
-	<TodoItem />
-</div>
-
-
