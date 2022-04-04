@@ -3,14 +3,14 @@
 </script>
 
 
-<div class="todo -done">
-    <form action="" method="">
-        <input type="hidden" name="done" value="" autocomplete="off" class=""/>
-        <button aria-label="Mark done/not done" class="toggle"></button>
+<div class="todo" class:done={todo.done}>
+    <form action="/todos/{todo.uid}.json?_method=patch" method="post">
+        <input type="hidden" name="done" value="{todo.done ? '' : 'true'}" />
+        <button aria-label="Mark todo as {todo.done ? 'not done' : 'done'}" class="toggle"></button>
     </form>
 
     <form action="/todos/{todo.uid}.json?_method=patch" method="post" class="text">
-        <input type="text" name="text" value="{todo.text}" autocomplete="off"/>
+        <input type="text" name="text" value="{todo.text}" />
         <button aria-label="Save todo" class="save"></button>
     </form>
 
