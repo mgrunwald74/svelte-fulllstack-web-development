@@ -3,7 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit/types/private';
 // TODO: Persist in database
 let todos: Todo[] = [];
 
-export const api = (event: RequestEvent<{ uid?: string }>, todo?: Todo) => {
+export const api = (event: RequestEvent<{ uid?: string }>, data?: Record<string, unknown>) => {
 	const { request, params } = event;
 	let body = {};
 	let status = 500;
@@ -14,10 +14,19 @@ export const api = (event: RequestEvent<{ uid?: string }>, todo?: Todo) => {
 			status = 200;
 			break;
 		case 'POST':
-			todos.push(todo);
-      body =  todo;
-      status = 201;
-      break;
+			todos.push(data as Todo);
+			body = data;
+			status = 201;
+			break;
+		case 'PATCH':
+			todos = todos.map((todo) => {
+				if (todo.uid === params.uid) {
+					todo.text = data.text as string;
+				}
+				return todo;
+			});
+			status = 200;
+			break;
 		case 'DELETE':
 			todos = todos.filter((todo) => todo.uid !== params.uid);
 			status = 200;
@@ -27,14 +36,14 @@ export const api = (event: RequestEvent<{ uid?: string }>, todo?: Todo) => {
 			break;
 	}
 
-  if (request.method !== 'GET') {
-    return {
-      status: 303,
-      headers: {
-        location: '/'
-      }
-    };
-  }
+	if (request.method !== 'GET') {
+		return {
+			status: 303,
+			headers: {
+				location: '/'
+			}
+		};
+	}
 
 	return {
 		status,
