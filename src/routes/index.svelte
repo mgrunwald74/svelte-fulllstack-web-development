@@ -1,20 +1,21 @@
 <script context="module" lang="ts">
 	import type { Load } from '@sveltejs/kit';
+	import { enhance } from '$lib/action/form';
 
 	export const load: Load = async ({ fetch }) => {
-		const res = await fetch('/todos.json')
+		const res = await fetch('/todos.json');
 
 		if (res.ok) {
-			const todos = await res.json()
+			const todos = await res.json();
 			return {
 				props: { todos }
-			}
+			};
 		}
 
 		const { message } = await res.json();
 		return {
 			error: new Error(message)
-		}
+		};
 	};
 </script>
 
@@ -24,6 +25,36 @@
 	export let todos: Todo[];
 
 	const title = 'Todos';
+
+	const processNewTodoResult = async (res: Response, form: HTMLFormElement) => {
+		const newTodo = await res.json();
+		todos = [...todos, newTodo];
+		form.reset();
+	};
+
+	const processUpdatedTodoResult = async (res: Response) => {
+		// TODO: Howto update or reverse text field when trying to update to an empty string?
+		const updatedTodo = await res.json();
+
+		todos = todos.map((t) => {
+			if (t.uid === updatedTodo.uid) {
+				return updatedTodo;
+			}
+			return t;
+		});
+		focusFirstInputElement();
+	};
+
+	const processDeletedTodoResult = async (todo: Todo) => {
+		todos = todos.filter((t) => t.uid !== todo.uid);
+		focusFirstInputElement();
+	};
+
+	const focusFirstInputElement = () => {
+		const focusable = document.querySelectorAll('input');
+		let firstFocusable = focusable[0] as HTMLInputElement;
+		firstFocusable.focus();
+	};
 </script>
 
 <svelte:head>
@@ -32,21 +63,22 @@
 
 <div class="todos">
 	<h1>{title}</h1>
-
-	<form action="/todos.json" method="post" class="new">
-		<input
-			type="text"
-			name="text"
-			aria-label="Add a todo"
-			placeholder="+ tap to add a todo"
-			autocomplete="off"
-		/>
+	<form
+		action="/todos.json"
+		method="post"
+		class="new"
+		use:enhance={{ result: processNewTodoResult }}
+	>
+		<input type="text" name="text" aria-label="Add a todo" placeholder="+ tap to add a todo" />
 	</form>
 
 	{#each todos as todo}
-		<TodoItem {todo}/>
+		<TodoItem
+			{todo}
+			processDeletedTodoResult={() => processDeletedTodoResult(todo)}
+			{processUpdatedTodoResult}
+		/>
 	{/each}
-
 </div>
 
 <style>
