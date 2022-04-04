@@ -14,22 +14,33 @@ export const api = (event: RequestEvent<{ uid?: string }>, data?: Record<string,
 			status = 200;
 			break;
 		case 'POST':
+			if (!data.text) {
+				status = 500;
+				body = { message: 'Text cannot be empty!' };
+				break;
+			}
 			todos.push(data as Todo);
-			body = data;
 			status = 201;
+			body = data;
 			break;
 		case 'PATCH':
+			if (!data.text && data.done === undefined) {
+				status = 200;
+				body = data
+				break;
+			}
 			todos = todos.map((todo) => {
 				if (todo.uid === params.uid) {
-					if (data.text) {
+					if (data.text && data.text !== '') {
 						todo.text = data.text as string;
-					} else  {
+					} else if (data.done !== undefined) {
 						todo.done = data.done as boolean;
-					} 
+					}
 				}
 				return todo;
 			});
 			status = 200;
+			body = todos.find((todo) => todo.uid === params.uid);
 			break;
 		case 'DELETE':
 			todos = todos.filter((todo) => todo.uid !== params.uid);
@@ -40,7 +51,7 @@ export const api = (event: RequestEvent<{ uid?: string }>, data?: Record<string,
 			break;
 	}
 
-	if (request.method !== 'GET') {
+	if (request.method !== 'GET' && request.headers.get('accept') !== 'application/json') {
 		return {
 			status: 303,
 			headers: {
