@@ -1,16 +1,16 @@
 import type { RequestEvent } from '@sveltejs/kit/types/private';
+import PrismaClient from '$lib/prisma';
 
-// TODO: Persist in database
-let todos: Todo[] = [];
+const prisma = new PrismaClient();
 
-export const api = (event: RequestEvent<{ uid?: string }>, data?: Record<string, unknown>) => {
+export const api = async (event: RequestEvent<{ uid?: string }>, data?: Record<string, unknown>) => {
 	const { request, params } = event;
 	let body = {};
 	let status = 500;
 
 	switch (request.method.toLocaleUpperCase()) {
 		case 'GET':
-			body = todos;
+			body = await prisma.todo.findMany();
 			status = 200;
 			break;
 		case 'POST':
@@ -19,31 +19,38 @@ export const api = (event: RequestEvent<{ uid?: string }>, data?: Record<string,
 				body = { message: 'Text cannot be empty!' };
 				break;
 			}
-			todos.push(data as Todo);
+			body = await prisma.todo.create({
+				data: {
+					created_at: data.created_at as Date,
+					done: data.done as boolean,
+					text: data.text as string
+				}
+			})
 			status = 201;
-			body = data;
 			break;
 		case 'PATCH':
 			if (!data.text && data.done === undefined) {
 				status = 200;
-				body = data
+				body = data;
 				break;
 			}
-			todos = todos.map((todo) => {
-				if (todo.uid === params.uid) {
-					if (data.text && data.text !== '') {
-						todo.text = data.text as string;
-					} else if (data.done !== undefined) {
-						todo.done = data.done as boolean;
-					}
+			body = await prisma.todo.update({
+				where: {
+					uid: params.uid
+				},
+				data: {
+					done: data.done as boolean,
+					text: data.text as string
 				}
-				return todo;
-			});
+			})
 			status = 200;
-			body = todos.find((todo) => todo.uid === params.uid);
 			break;
 		case 'DELETE':
-			todos = todos.filter((todo) => todo.uid !== params.uid);
+			body = await prisma.todo.delete({
+				where: {
+					uid: params.uid
+				}
+			})
 			status = 200;
 			break;
 
