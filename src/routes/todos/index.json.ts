@@ -9,7 +9,6 @@ export const get: RequestHandler = (event) => {
 export const post: RequestHandler = async (event) => {
   const formData = await event.request.formData()
   return api(event, {
-    uid:`${Math.floor(Math.random() * 1024)}`,
     created_at: new Date(),
     text: formData.get('text') as string,
     done: false
